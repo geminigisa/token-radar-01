@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Launch Radar — pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="dot" aria-hidden="true"></span>
+    <h1>Token Launch Radar</h1>
+  </div>
+  <p class="sub">Protocols that record no token, ranked by the implied value of a token
+  they may one day issue. The value is this radar's own claim, derived only
+  from the sealed snapshot — never a prediction of whether or when a token
+  is issued.</p>
+  <p class="meta" id="meta"></p>
+</header>
+
+<main>
+  <section class="panel controls" aria-label="Filters">
+    <label>Search <input id="q" type="search" placeholder="name or slug" autocomplete="off"></label>
+    <label>Category <select id="cat"><option value="">All categories</option></select></label>
+    <label>Chain <select id="chain"><option value="">All chains</option></select></label>
+    <label class="check"><input id="watch" type="checkbox"> Watchlist only</label>
+    <label>Sort <select id="sort">
+      <option value="value">Implied value ↓</option>
+      <option value="tvl">TVL ↓</option>
+      <option value="growth">7-day change ↓</option>
+      <option value="age">Days tracked ↓</option>
+      <option value="name">Name A–Z</option>
+    </select></label>
+  </section>
+
+  <section class="panel" id="model">
+    <h2>How the implied value is computed</h2>
+    <p class="formula">implied value = TVL × category multiple × growth factor × maturity factor</p>
+    <ul class="model-notes">
+      <li><b>Category multiple.</b> The median market-cap / TVL ratio of token-recorded
+      protocols in the same category, shrunk toward the overall median
+      (n / (n + 10) weight); categories with fewer than 5 priced peers use the
+      overall median. Computed from this snapshot at run time, never hardcoded.</li>
+      <li><b>Growth factor.</b> 1 + clamp(7-day TVL change, −30, +30) / 100 × 0.5.
+      A change beyond ±300% or a missing value counts as 0 and is flagged —
+      a one-week move that large is a reporting artefact, not growth.</li>
+      <li><b>Maturity factor.</b> 0.90 + 0.10 × min(days tracked, 1095) / 1095;
+      unknown age counts as 0.95. Days are counted from the snapshot's frozen
+      date, and shown as “days tracked”, not “days awaiting a token”.</li>
+      <li><b>What it is not.</b> This is an implied market cap under comparable
+      valuations, not a launch probability, not a future FDV, and not an
+      expected airdrop payout. “Records no token” means the snapshot carries
+      no token for the protocol — it is not proof that none exists.</li>
+    </ul>
+    <h3>Calibration — median market-cap / TVL of priced peers, by category</h3>
+    <table class="calib" id="calib">
+      <thead><tr><th>Category</th><th>Priced peers</th><th>Median mcap/TVL</th><th>Multiple used</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="summary" aria-label="Board summary">
+    <h2>Board summary</h2>
+    <div id="summaryBody"></div>
+  </section>
+
+  <section class="panel">
+    <h2 id="boardTitle">Board</h2>
+    <p class="hint">Click a row for the detail view: model breakdown, the recomputed
+    value, and the farm plan.</p>
+    <table class="board" id="board">
+      <thead><tr>
+        <th>#</th><th>Protocol</th><th>Category</th><th>Chains</th>
+        <th class="num">TVL</th><th class="num">7d</th><th class="num">Tracked</th>
+        <th class="num">Implied value</th><th>List</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="count" id="count"></p>
+  </section>
+</main>
+
+<dialog id="detail" class="detail">
+  <form method="dialog"><button class="close" aria-label="Close">✕</button></form>
+  <div id="detailBody"></div>
+</dialog>
+
+<footer>
+  <p>Token Launch Radar — built from a sealed DefiLlama snapshot. Implied values
+  are the entry's own claims. Farm plans are conditional steps: verify a live
+  points program on the protocol's official site before acting, and treat
+  every cost and time in a plan as a planning assumption, not the protocol's
+  own terms.</p>
+</footer>
+
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

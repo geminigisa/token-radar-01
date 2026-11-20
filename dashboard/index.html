@@ -3,56 +3,55 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Token Launch Radar — pre-token protocols ranked by implied value</title>
+<title>Launch Radar — Pre-Token Protocol Board</title>
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
 <header class="top">
-  <div class="brand">
-    <span class="dot" aria-hidden="true"></span>
-    <h1>Token Launch Radar</h1>
+  <div>
+    <div class="brand"><span class="dot" aria-hidden="true"></span><h1>Launch Radar</h1><span class="dim">/ PRE-TOKEN PROTOCOL BOARD</span></div>
+    <p class="sub">Every pre-token protocol, fitted against traded peers, odds from peer conversion, farm plans costed to the dollar.</p>
+    <p class="meta" id="meta"></p>
   </div>
-  <p class="sub">Protocols that record no token, ranked by the implied value of a token
-  they may one day issue. The value is this radar's own claim, derived only
-  from the sealed snapshot — never a prediction of whether or when a token
-  is issued.</p>
-  <p class="meta" id="meta"></p>
 </header>
+
+<section class="kpis" id="kpis" aria-label="Integrity and KPI strip"></section>
 
 <main>
   <section class="panel controls" aria-label="Filters">
-    <label>Search <input id="q" type="search" placeholder="name or slug" autocomplete="off"></label>
-    <label>Category <select id="cat"><option value="">All categories</option></select></label>
+    <label>Search <input id="q" type="search" placeholder="name, slug or category" autocomplete="off"></label>
+    <label>Verdict <select id="verdict"><option value="">All verdicts</option><option value="FARM">FARM only</option><option value="THIN">THIN only</option><option value="SKIP">SKIP only</option></select></label>
+    <label>Category <select id="category"><option value="">All categories</option></select></label>
     <label>Chain <select id="chain"><option value="">All chains</option></select></label>
     <label class="check"><input id="watch" type="checkbox"> Watchlist only</label>
     <label>Sort <select id="sort">
+      <option value="ev">Net farm EV ↓</option>
       <option value="value">Implied value ↓</option>
       <option value="tvl">TVL ↓</option>
-      <option value="growth">7-day change ↓</option>
+      <option value="chg">7-day change ↓</option>
       <option value="age">Days tracked ↓</option>
       <option value="name">Name A–Z</option>
     </select></label>
   </section>
 
-  <section class="panel" id="model">
-    <h2>How the implied value is computed</h2>
-    <p class="formula">implied value = TVL × category multiple × growth factor × maturity factor</p>
-    <ul class="model-notes">
-      <li><b>Category multiple.</b> The median market-cap / TVL ratio of token-recorded
-      protocols in the same category, shrunk toward the overall median
-      (n / (n + 10) weight); categories with fewer than 5 priced peers use the
-      overall median. Computed from this snapshot at run time, never hardcoded.</li>
-      <li><b>Growth factor.</b> 1 + clamp(7-day TVL change, −30, +30) / 100 × 0.5.
-      A change beyond ±300% or a missing value counts as 0 and is flagged —
-      a one-week move that large is a reporting artefact, not growth.</li>
-      <li><b>Maturity factor.</b> 0.90 + 0.10 × min(days tracked, 1095) / 1095;
-      unknown age counts as 0.95. Days are counted from the snapshot's frozen
-      date, and shown as “days tracked”, not “days awaiting a token”.</li>
-      <li><b>What it is not.</b> This is an implied market cap under comparable
-      valuations, not a launch probability, not a future FDV, and not an
-      expected airdrop payout. “Records no token” means the snapshot carries
-      no token for the protocol — it is not proof that none exists.</li>
-    </ul>
+  <section class="panel" id="calibration" aria-label="Out-of-sample calibration">
+    <h2>Model calibration — tested, not asserted</h2>
+    <p class="formula">Fitted launch value = TVL × category multiple × growth factor × maturity factor, where the category multiple is the median mcap/TVL of priced peers, shrunk toward the pooled median. Expected value = fitted value × token odds.</p>
+    <div class="cal-grid">
+      <div>
+        <table class="cal-table" id="oos-table">
+          <caption>Out-of-sample tests on the 128 priced peers (mcap/TVL ground truth)</caption>
+          <thead><tr><th>Test</th><th class="num">n</th><th class="num">MdAPE</th><th class="num">MAE-log</th><th class="num">R²-log</th><th class="num">Hit ±2×</th><th class="num">Hit ±3×</th><th class="num">Hit ±5×</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <ul class="notes" id="cal-notes"></ul>
+      </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Held-out predicted vs actual mcap (log-log, 5-fold, 128 peers)</div>
+        <svg id="scatter" viewBox="0 0 460 300" role="img" aria-label="Scatter chart of predicted versus actual market capitalisation"></svg>
+        <div class="chart-note">Dots are held-out peers: each prediction was made without that peer in the calibration set. The diagonal is a perfect prediction.</div>
+      </div>
+    </div>
     <h3>Calibration — median market-cap / TVL of priced peers, by category</h3>
     <table class="calib" id="calib">
       <thead><tr><th>Category</th><th>Priced peers</th><th>Median mcap/TVL</th><th>Multiple used</th></tr></thead>
@@ -60,21 +59,25 @@
     </table>
   </section>
 
-  <section class="panel" id="summary" aria-label="Board summary">
-    <h2>Board summary</h2>
-    <div id="summaryBody"></div>
+  <section class="panel" id="accounting" aria-label="Dataset accounting">
+    <h2>Dataset accounting — 758 / 758</h2>
+    <p id="accounting-text"></p>
+    <table class="acc-table" id="acc-table">
+      <thead><tr><th>Bucket</th><th class="num">Protocols</th><th>What it means</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="panel" id="assumptions" aria-label="Assumptions">
+    <h2>Assumptions — stated, not hidden</h2>
+    <ul class="notes" id="assump-list"></ul>
   </section>
 
   <section class="panel">
-    <h2 id="boardTitle">Board</h2>
-    <p class="hint">Click a row for the detail view: model breakdown, the recomputed
-    value, and the farm plan.</p>
+    <h2 id="boardTitle">Board — ranked by net farm EV</h2>
+    <p class="hint">Click a row for the detail view: model breakdown, peer anchors, token odds, the costed farm plan, and the recomputed value. Rows are ordered by net farm EV; # is the protocol's rank by implied value.</p>
     <table class="board" id="board">
-      <thead><tr>
-        <th>#</th><th>Protocol</th><th>Category</th><th>Chains</th>
-        <th class="num">TVL</th><th class="num">7d</th><th class="num">Tracked</th>
-        <th class="num">Implied value</th><th>List</th>
-      </tr></thead>
+      <thead><tr><th>#</th><th>Protocol</th><th>Category · Chain</th><th class="num">Fitted FDV</th><th class="num">Token odds</th><th class="num">Net farm EV</th><th class="num">Deposit · Hold</th><th>Verdict</th></tr></thead>
       <tbody></tbody>
     </table>
     <p class="count" id="count"></p>
@@ -87,13 +90,9 @@
 </dialog>
 
 <footer>
-  <p>Token Launch Radar — built from a sealed DefiLlama snapshot. Implied values
-  are the entry's own claims. Farm plans are conditional steps: verify a live
-  points program on the protocol's official site before acting, and treat
-  every cost and time in a plan as a planning assumption, not the protocol's
-  own terms.</p>
+  <p>Board rows: protocols that record no token and are not excluded (house exclusion rules). Peers already traded are the calibration anchors, not the board. Nothing here is financial advice.</p>
+  <p>Snapshot from DefiLlama, sealed in the kit — the radar reads it, it never fetches live data. Numbers that are assumptions say so. Any figure that cannot be computed from the snapshot is not shown.</p>
 </footer>
-
 <script src="../data.js"></script>
 <script src="app.js"></script>
 </body>

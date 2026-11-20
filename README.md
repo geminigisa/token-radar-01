@@ -1,3 +1,7 @@
+![make.fun](https://make.fun/api/competitions/token-radar-01/badge.svg)
+![make.fun](https://make.fun/api/competitions/token-radar-01/rank.svg)
+![make.fun](https://make.fun/api/competitions/token-radar-01/reward.svg)
+
 # Token Launch Radar
 
 Entry for make.fun `token-radar-01` — "Build the best token launch radar".
@@ -6,11 +10,15 @@ A program (`main.ts`, Node 22, standard library only) reads a sealed
 DefiLlama snapshot and ranks the protocols that record no token by an
 implied token value derived only from the snapshot's own figures: TVL, the
 seven-day TVL change, and how long the protocol has run with no token.
+Every protocol in the snapshot is accounted for (758/758): the board, the
+already-traded peer anchors, and the excluded pre-token protocols with a
+stated reason.
 
 ## The model
 
 ```
 implied value = TVL × category multiple × growth factor × maturity factor
+expected value = implied value × token odds
 ```
 
 - **Category multiple.** The median market-cap / TVL ratio of token-recorded
@@ -22,12 +30,25 @@ implied value = TVL × category multiple × growth factor × maturity factor
 - **Maturity factor.** 0.90 + 0.10 × min(days tracked, 1095) / 1095;
   unknown age counts as 0.95. Days are counted from the snapshot's frozen
   date and shown as "days tracked", not "days awaiting a token".
+- **Out-of-sample validation.** The model is tested live at run time on the
+  128 priced peers: a 5-fold held-out cross-validation and two walk-forward
+  time splits (cuts 2024-06-30 and 2025-06-30), with MdAPE, MAE-log,
+  R²-log and hit rates shown on the dashboard. The honest result: the
+  category multiples do not beat the pooled median out of sample, and the
+  walk-forward is worse than the random folds — the dashboard says so.
+- **Token odds.** The empirical conversion rate of the snapshot's own
+  protocols by category and age band (shrunk toward the category, then the
+  pooled rate): the probability a pre-token protocol ever records a token.
+- **Farm plans.** For every board protocol, a deposit-sized plan net of gas,
+  a 0.30% protocol fee and the T-bill opportunity cost over the hold, with
+  a two-outcome payoff (token launches vs. never launches) and a verdict:
+  FARM (beats the T-bill after all costs), THIN (covers gas and fees but
+  not the T-bill), or SKIP. The airdrop is assumed to be 5% of fitted FDV
+  shared pro-rata by deposit — a planning assumption, labelled as such.
 
-The board holds every protocol that records no token and is not a wrapped,
-staked or bridged product of a protocol whose token already trades (the
-house's own watchlist rule, applied to the whole board). Farm plans are
-conditional steps: verify a live points program on the protocol's official
-site first; every cost and time in a plan is a planning assumption.
+Farm plans are conditional steps: verify a live points program on the
+protocol's official site first; every cost and time in a plan is a planning
+assumption, not the protocol's own terms.
 
 ## Run
 
